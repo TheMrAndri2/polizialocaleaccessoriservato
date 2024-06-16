@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Impegni - Polizia Locale Milano</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px; /* Aggiunto spazio tra form e lista */
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .impegno {
+            background-color: #f9f9f9;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 6px solid #4CAF50;
+            border-radius: 4px;
+            display: grid;
+            gap: 5px;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+        }
+        .impegno-desc {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .impegno-details {
+            font-size: 14px;
+            color: #555;
+        }
+        .impegno-actions {
+            text-align: right;
+        }
+        .impegno-actions button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        .impegno-actions button:hover {
+            background-color: #e53935;
+        }
+        .no-impegni {
+            text-align: center;
+            color: #666;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gestione Impegni - Polizia Locale Milano</h1>
+
+        <!-- Form per aggiungere un nuovo impegno -->
+        <form id="nuovo-impegno-form">
+            <label for="descrizione">Descrizione:</label>
+            <input type="text" id="descrizione" required>
+
+            <label for="tipo">Tipo:</label>
+            <select id="tipo" required>
+                <option value="colloquio">Colloquio</option>
+                <option value="operazione">Operazione</option>
+                <option value="evento">Evento</option>
+                <option value="altro">Altro</option>
+            </select>
+
+            <label for="data">Data:</label>
+            <input type="date" id="data" required>
+
+            <label for="orario">Orario:</label>
+            <input type="time" id="orario" required>
+
+            <label for="luogo">Luogo:</label>
+            <input type="text" id="luogo" required>
+
+            <button type="submit">Aggiungi Impegno</button>
+        </form>
+
+        <!-- Lista degli impegni -->
+        <div id="impegni-list">
+            <!-- Gli impegni saranno inseriti qui dinamicamente -->
+        </div>
+
+        <!-- Messaggio se non ci sono impegni -->
+        <div id="no-impegni" class="no-impegni" style="display: none;">Nessun impegno programmato.</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('nuovo-impegno-form');
+            const impegniList = document.getElementById('impegni-list');
+            const noImpegniMessage = document.getElementById('no-impegni');
+
+            // Recupera gli impegni salvati da localStorage al caricamento della pagina
+            const savedImpegni = JSON.parse(localStorage.getItem('impegni')) || [];
+
+            // Mostra gli impegni salvati nella lista al caricamento della pagina
+            savedImpegni.forEach(impegno => {
+                aggiungiImpegnoAllaLista(impegno);
+            });
+
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const descrizione = document.getElementById('descrizione').value;
+                const tipo = document.getElementById('tipo').value;
+                const data = document.getElementById('data').value;
+                const orario = document.getElementById('orario').value;
+                const luogo = document.getElementById('luogo').value;
+
+                // Crea un oggetto impegno
+                const nuovoImpegno = {
+                    descrizione,
+                    tipo,
+                    data,
+                    orario,
+                    luogo
+                };
+
+                // Aggiungi l'impegno alla lista visivamente
+                aggiungiImpegnoAllaLista(nuovoImpegno);
+
+                // Aggiungi l'impegno salvato a localStorage
+                savedImpegni.push(nuovoImpegno);
+                localStorage.setItem('impegni', JSON.stringify(savedImpegni));
+
+                // Resetta il form
+                form.reset();
+            });
+
+            // Funzione per aggiungere un impegno alla lista
+            function aggiungiImpegnoAllaLista(impegno) {
+                const nuovoImpegno = document.createElement('div');
+                nuovoImpegno.classList.add('impegno');
+                nuovoImpegno.innerHTML = `
+                    <div class="impegno-desc">${impegno.descrizione}</div>
+                    <div class="impegno-details">
+                        <span><strong>Tipo:</strong> ${impegno.tipo}</span><br>
+                        <span><strong>Data:</strong> ${impegno.data}</span><br>
+                        <span><strong>Orario:</strong> ${impegno.orario}</span><br>
+                        <span><strong>Luogo:</strong> ${impegno.luogo}</span>
+                    </div>
+                    <div class="impegno-actions">
+                        <button onclick="eliminaImpegno(this)">Elimina</button>
+                    </div>
+                `;
+                impegniList.appendChild(nuovoImpegno);
+
+                // Mostra il messaggio se non ci sono impegni
+                if (impegniList.children.length > 0) {
+                    noImpegniMessage.style.display = 'none';
+                } else {
+                    noImpegniMessage.style.display = 'block';
+                }
+            }
+
+            // Funzione per eliminare un impegno
+            window.eliminaImpegno = function(elemento) {
+                const index = Array.from(impegniList.children).indexOf(elemento.closest('.impegno'));
+                if (index !== -1) {
+                    impegniList.removeChild(impegniList.children[index]);
+                    savedImpegni.splice(index, 1);
+                    localStorage.setItem('impegni', JSON.stringify(savedImpegni));
+
+                    // Nascondi il messaggio se non ci sono impegni
+                    if (impegniList.children.length > 0) {
+                        noImpegniMessage.style.display = 'none';
+                    } else {
+                        noImpegniMessage.style.display = 'block';
+                    }
+                }
+            };
+        });
+    </script>
+</body>
+</html>
